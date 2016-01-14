@@ -21,12 +21,15 @@ using bigint_stack = iterstack<bigint>;
 
 void do_arith (bigint_stack& stack, const char oper) {
    if (stack.size() < 2) throw ydc_exn ("stack empty");
+
    bigint right = stack.top();
    stack.pop();
    DEBUGF ('d', "right = " << right);
+
    bigint left = stack.top();
    stack.pop();
    DEBUGF ('d', "left = " << left);
+
    bigint result;
    switch (oper) {
       case '+': result = left + right; break;
@@ -39,6 +42,7 @@ void do_arith (bigint_stack& stack, const char oper) {
                      string ("do_arith operator is ") + oper);
    }
    DEBUGF ('d', "result = " << result);
+
    stack.push (result);
 }
 
@@ -47,7 +51,7 @@ void do_clear (bigint_stack& stack, const char) {
    stack.clear();
 }
 
-
+
 void do_dup (bigint_stack& stack, const char) {
    bigint top = stack.top();
    DEBUGF ('d', top);
@@ -89,7 +93,7 @@ fn_hash do_functions = {
    {"q", do_quit},
 };
 
-
+
 //
 // scan_options
 //    Options analysis:  The only option is -Dflags. 
@@ -114,7 +118,7 @@ void scan_options (int argc, char** argv) {
    }
 }
 
-
+
 //
 // Main function.
 //
@@ -145,11 +149,11 @@ int main (int argc, char** argv) {
                default:
                   assert (false);
             }
-         }catch (ydc_exn& exn) {
+         } catch (ydc_exn& exn) {
             cout << exn.what() << endl;
          }
       }
-   }catch (ydc_quit&) {
+   } catch (ydc_quit&) {
       // Intentionally left empty.
    }
    return exec::status();
