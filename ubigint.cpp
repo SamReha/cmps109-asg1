@@ -9,12 +9,24 @@ using namespace std;
 #include "ubigint.h"
 #include "debug.h"
 
-ubigint::ubigint (unsigned long that): uvalue (that) {
-   DEBUGF ('~', this << " -> " << uvalue)
+//ubigint::ubigint (unsigned long that): uvalue (that) {
+//   DEBUGF ('~', this << " -> " << uvalue)
+//}
+
+/* Constructors */
+ubigint::ubigint (unsigned long that) {
+   while (that > 0) {
+      ubig_value.push_back(that % 10);
+      that = that/10;
+   }
+
+   DEBUGF ('~', this << " -> " << that)
 }
 
-ubigint::ubigint (const string& that): uvalue(0) {
-   for (char digit: that) uvalue = uvalue * 10 + digit - '0';
+ubigint::ubigint (const string& that) {
+   for (char digit : that) {
+      ubig_value.push_back(digit - '0');
+   }
 }
 
 ubigint ubigint::operator+ (const ubigint& that) const {
@@ -38,7 +50,6 @@ void ubigint::divide_by_2() {
    uvalue /= 2;
 }
 
-
 ubigint::quot_rem ubigint::divide (const ubigint& that) const {
    static const ubigint zero = 0;
    if (that == zero) throw domain_error ("ubigint::divide: by 0");
@@ -77,7 +88,13 @@ bool ubigint::operator< (const ubigint& that) const {
    return uvalue < that.uvalue;
 }
 
-ostream& operator<< (ostream& out, const ubigint& that) { 
-   return out << "ubigint(" << that.uvalue << ")";
+ostream& operator<< (ostream& out, const ubigint& that) {
+   string digitBuffer;
+
+   for (int i = that.ubig_value.size()-1; i >= 0; i--) {
+      digitBuffer += (that.ubig_value.at(i) + '0');
+   }
+
+   return out << digitBuffer;
 }
 
