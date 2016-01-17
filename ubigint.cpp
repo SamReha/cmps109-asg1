@@ -10,10 +10,6 @@ using namespace std;
 #include "ubigint.h"
 #include "debug.h"
 
-//ubigint::ubigint (unsigned long that): uvalue (that) {
-//   DEBUGF ('~', this << " -> " << uvalue)
-//}
-
 /* Constructors */
 ubigint::ubigint (unsigned long that) {
    while (that > 0) {
@@ -41,12 +37,14 @@ ubigint ubigint::operator+ (const ubigint& that) const {
    int carry = 0;    // The carry value (if any) - should be reset to 0 on use
    int digitSum = 0; // digitSum represents the sum of two digits (eg, ubig_value.at(0) + that.ubig_value.at(0))
    while (i < minSize or carry > 0) {
+      // Ugly logic, but avoids accidentally indexing into an operand that's shorter than the other
       if (i < ubig_value.size()) digitSum += ubig_value.at(i);
       if (i < that.ubig_value.size()) digitSum += that.ubig_value.at(i);
       digitSum += carry;
       carry = 0;
 
-      if (digitSum > 9) { // Which is to say, if digitSum is larger than 2 digits in a base 10 counting system
+      // Check if a carry needs to happen
+      if (digitSum > 9) {
          carry = 1;
          digitSum = digitSum % 10;
       }
@@ -101,7 +99,11 @@ ubigint ubigint::operator- (const ubigint& that) const {
 }
 
 ubigint ubigint::operator* (const ubigint& that) const {
-   //return ubigint (uvalue * that.uvalue);
+   ubigint product(0);
+
+   int minSize = (ubig_value.size() < that.ubig_value.size() ? ubig_value.size() : that.ubig_value.size());
+
+   while (product.ubig_value.size() > 0 and product.ubig_value.back() == 0) product.ubig_value.pop_back();
    return that;
 }
 
@@ -144,12 +146,33 @@ ubigint ubigint::operator% (const ubigint& that) const {
 }
 
 bool ubigint::operator== (const ubigint& that) const {
-   //return uvalue == that.uvalue;
-   return 1;
+   if (ubig_value.size() == that.ubig_value.size()) {
+      for (int i = 0; i < ubig_value.size(); i++) {
+         if (ubig_value.at(i) != that.ubig_value.at(i)) {
+            return 0;
+         }
+      }
+
+      // If we've made it this far, consider the ubigints to be equal. :)
+      return 1;
+   } else return 0;
 }
 
 bool ubigint::operator< (const ubigint& that) const {
-   //return uvalue < that.uvalue;
+   if (ubig_value.size() < that.ubig_value.size()) {
+      return 1;
+   } else if (ubig_value.size() == that.ubig_value.size()) {
+      for (int i = ubig_value.size()-1; i >= 0; i--) {
+         if (ubig_value.at(i) >= that.ubig_value.at(i)) {
+            return 0;
+         }
+      }
+
+      // if we've made it this far, consider this to be smaller than that.
+      return 1;
+   }
+
+   // If this is longer than that, this cannot be smaller.
    return 0;
 }
 
