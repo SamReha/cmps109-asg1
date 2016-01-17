@@ -64,28 +64,36 @@ ubigint ubigint::operator- (const ubigint& that) const {
    if (*this < that) throw domain_error ("ubigint::operator-(a<b)");
    ubigint difference(0);
 
-   int thatSize = that.ubig_value.size();
    int i = 0;           // The index in the vectors
    int borrow = 0;      // The borrow value (if any) - should be reset to 0 on use
-   int digitDiff = 0;   // The difference of two digits
    int thisOperand = 0; // Since we can't directly modify ubig_value, this holds the value of a digit in case we need to apply a borrow
 
-   while (i < thatSize) {
-      ((borrow == 0) ? thisOperand = ubig_value.at(i) : ubig_value.at(i) - 1); // This may have issues when dealing with borrows that extend beyond the reach of thatSize
+   while (i < that.ubig_value.size()) {
+      // Handle any borrows
+      thisOperand = ubig_value.at(i) - borrow;
       borrow = 0;
 
+      // Check if a borrow needs to happen next iteration
       if (thisOperand < that.ubig_value.at(i)) {
-         borrow = 10;
+         thisOperand += 10;
+         borrow = 1;
       }
 
-      digitDiff = (thisOperand + borrow) - that.ubig_value.at(i);
-      difference.ubig_value.push_back(digitDiff);
-
+      difference.ubig_value.push_back(thisOperand - that.ubig_value.at(i));
       i++;
    }
 
    // Should also push_back extra digits from this when this is longer than thatSize
-   if (i < ubigint_value.size()) {
+   while (i < ubig_value.size()) {
+      // But be sure to handle any unresolved borrows!
+      if (borrow > 0) {
+         difference.ubig_value.push_back(ubig_value.at(i)-1);
+         borrow = 0;
+      } else {
+         difference.ubig_value.push_back(ubig_value.at(i));
+      }
+
+      i++;
    }
 
    while (difference.ubig_value.size() > 0 and difference.ubig_value.back() == 0) difference.ubig_value.pop_back();
