@@ -4,6 +4,7 @@
 #include <exception>
 #include <stack>
 #include <stdexcept>
+#include <algorithm>    // std::reverse used in constructor
 using namespace std;
 
 #include "ubigint.h"
@@ -20,34 +21,39 @@ ubigint::ubigint (unsigned long that) {
       that = that/10;
    }
 
-   DEBUGF ('~', this << " -> " << that)
+   //DEBUGF ('~', this << " -> " << that) - commented out only for use in ubiginttester
 }
 
 ubigint::ubigint (const string& that) {
    for (char digit : that) {
       ubig_value.push_back(digit - '0');
    }
+
+   reverse(ubig_value.begin(), ubig_value.end());
 }
 
 ubigint ubigint::operator+ (const ubigint& that) const {
-   return ubigint (uvalue + that.uvalue);
+   //return ubigint (uvalue + that.uvalue);
+   return that;
 }
 
 ubigint ubigint::operator- (const ubigint& that) const {
    if (*this < that) throw domain_error ("ubigint::operator-(a<b)");
-   return ubigint (uvalue - that.uvalue);
+   //return ubigint (uvalue - that.uvalue);
+   return that;
 }
 
 ubigint ubigint::operator* (const ubigint& that) const {
-   return ubigint (uvalue * that.uvalue);
+   //return ubigint (uvalue * that.uvalue);
+   return that;
 }
 
 void ubigint::multiply_by_2() {
-   uvalue *= 2;
+   //uvalue *= 2;
 }
 
 void ubigint::divide_by_2() {
-   uvalue /= 2;
+   //uvalue /= 2;
 }
 
 ubigint::quot_rem ubigint::divide (const ubigint& that) const {
@@ -81,11 +87,13 @@ ubigint ubigint::operator% (const ubigint& that) const {
 }
 
 bool ubigint::operator== (const ubigint& that) const {
-   return uvalue == that.uvalue;
+   //return uvalue == that.uvalue;
+   return 1;
 }
 
 bool ubigint::operator< (const ubigint& that) const {
-   return uvalue < that.uvalue;
+   //return uvalue < that.uvalue;
+   return 0;
 }
 
 ostream& operator<< (ostream& out, const ubigint& that) {
