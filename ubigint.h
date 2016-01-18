@@ -23,7 +23,6 @@ class ubigint {
       void multiply_by_2();
       void divide_by_2();
    public:
-
       ubigint() = default; // Need default ctor as well.
       ubigint (unsigned long);
       ubigint (const string&);

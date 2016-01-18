@@ -28,9 +28,35 @@ ubigint::ubigint (const string& that) {
    reverse(ubig_value.begin(), ubig_value.end());
 }
 
+/* Copy function
+ubigint ubigint::copy() {
+   ubigint copyValue(0);
+
+   for (int i = 0; i < ubig_value.size(); i++) {
+      copyValue.ubig_value.push_back(ubig_value.at(i));
+   }
+
+   return copyValue;
+} */
+
 /* Arithmetic Operations */
 ubigint ubigint::operator+ (const ubigint& that) const {
    ubigint sum(0);
+
+   // Right off the bat, let's handle the case where one or more of the operands == 0:
+   if (ubig_value.size() == 0) {
+      for (int i = 0; i < that.ubig_value.size(); i++) {
+         sum.ubig_value.push_back(that.ubig_value.at(i));
+      }
+
+      return sum;
+   } else if (that.ubig_value.size() == 0) {
+      for (int i = 0; i < ubig_value.size(); i++) {
+         sum.ubig_value.push_back(ubig_value.at(i));
+      }
+
+      return sum;
+   }
 
    int minSize = (ubig_value.size() < that.ubig_value.size() ? ubig_value.size() : that.ubig_value.size());
    int i = 0;        // The index in the vectors
@@ -52,6 +78,19 @@ ubigint ubigint::operator+ (const ubigint& that) const {
       sum.ubig_value.push_back(digitSum);
       digitSum = 0;
       i++;
+   }
+
+   // Should also push_back extra digits from this when this is longer than thatSize
+   if (ubig_value.size() > that.ubig_value.size()) {
+      while (i < ubig_value.size()) {
+         sum.ubig_value.push_back(ubig_value.at(i));
+         i++;
+      }
+   } else {
+      while (i < that.ubig_value.size()) {
+         sum.ubig_value.push_back(that.ubig_value.at(i));
+         i++;
+      }
    }
 
    while (sum.ubig_value.size() > 0 and sum.ubig_value.back() == 0) sum.ubig_value.pop_back();
@@ -101,14 +140,48 @@ ubigint ubigint::operator- (const ubigint& that) const {
 ubigint ubigint::operator* (const ubigint& that) const {
    ubigint product(0);
 
-   int minSize = (ubig_value.size() < that.ubig_value.size() ? ubig_value.size() : that.ubig_value.size());
+   for (int i = 0; i < ubig_value.size(); i++) {
+      ubigint partialProduct(0);
+      int digitProduct = 0;
+      int carry = 0;
+      for (int k = 0; k < that.ubig_value.size(); k++) {
+         digitProduct = (ubig_value.at(i) * that.ubig_value.at(k)) + carry;
+         carry = 0;
+
+         if (digitProduct > 9) {
+            carry = digitProduct / 10;
+            digitProduct = digitProduct % 10;
+         }
+
+         partialProduct.ubig_value.push_back(digitProduct);
+      }
+
+      // Handle any left-over carries
+      if (carry > 0) {
+         partialProduct.ubig_value.push_back(carry);
+         carry = 0;
+      }
+
+      // Do a quicky version of multiplying by 10 to handle the offset when forming partial products
+      int offset = 0;
+      while (offset < i) {
+         partialProduct.ubig_value.insert(partialProduct.ubig_value.begin(), 0); // Appends 0's to base of ubig_value
+         offset++;
+      }
+
+      cout << "Partial Product " << partialProduct << endl;
+      product = product + partialProduct;
+      cout << "Current Product " << product << endl;
+      partialProduct.ubig_value.clear();
+   }
 
    while (product.ubig_value.size() > 0 and product.ubig_value.back() == 0) product.ubig_value.pop_back();
-   return that;
+   return product;
 }
 
+// Handy internal helper functions
 void ubigint::multiply_by_2() {
-   //uvalue *= 2;
+   //this = this * ubigint(2);
 }
 
 void ubigint::divide_by_2() {
@@ -145,6 +218,7 @@ ubigint ubigint::operator% (const ubigint& that) const {
    return divide (that).second;
 }
 
+// Comparison operations
 bool ubigint::operator== (const ubigint& that) const {
    if (ubig_value.size() == that.ubig_value.size()) {
       for (int i = 0; i < ubig_value.size(); i++) {
@@ -176,11 +250,16 @@ bool ubigint::operator< (const ubigint& that) const {
    return 0;
 }
 
+// Print to ostream
 ostream& operator<< (ostream& out, const ubigint& that) {
    string digitBuffer;
 
-   for (int i = that.ubig_value.size()-1; i >= 0; i--) {
-      digitBuffer += (that.ubig_value.at(i) + '0');
+   if (that.ubig_value.size() > 0) {
+      for (int i = that.ubig_value.size()-1; i >= 0; i--) {
+         digitBuffer += (that.ubig_value.at(i) + '0');
+      }
+   } else { // else if ubig_value is empty, then that represents 0.
+      digitBuffer += '0';
    }
 
    return out << digitBuffer;
