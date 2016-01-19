@@ -80,7 +80,7 @@ ubigint ubigint::operator+ (const ubigint& that) const {
       i++;
    }
 
-   // Should also push_back extra digits from this when this is longer than thatSize
+   // Should also push_back extra digits if one operand is longer than the other
    if (ubig_value.size() > that.ubig_value.size()) {
       while (i < ubig_value.size()) {
          sum.ubig_value.push_back(ubig_value.at(i));
@@ -169,9 +169,7 @@ ubigint ubigint::operator* (const ubigint& that) const {
          offset++;
       }
 
-      cout << "Partial Product " << partialProduct << endl;
       product = product + partialProduct;
-      cout << "Current Product " << product << endl;
       partialProduct.ubig_value.clear();
    }
 
@@ -181,41 +179,84 @@ ubigint ubigint::operator* (const ubigint& that) const {
 
 // Handy internal helper functions
 void ubigint::multiply_by_2() {
-   //this = this * ubigint(2);
+   // Just a simpler case of multiplication
+   int carry = 0;
+   for (int i = 0; i < ubig_value.size(); i++) {
+      int digitProduct = (ubig_value.at(i) * 2) + carry;
+      carry = 0;
+
+      // Check if a carry needs to be generated
+      if (digitProduct > 9) {
+         carry = digitProduct / 10;
+         digitProduct = digitProduct % 10;
+      }
+
+      ubig_value.at(i) = digitProduct;
+   }
+
+   // Handle any left-over carries
+   if (carry > 0) {
+      ubig_value.push_back(carry);
+   }
+
+   while (ubig_value.size() > 0 and ubig_value.back() == 0) ubig_value.pop_back();
 }
 
 void ubigint::divide_by_2() {
-   //uvalue /= 2;
+   int remainder = 0; // because we're only ever dividing by two, remainder can only equal 0 or 5
+   int digitQuotient = 0;
+
+   // Iterate backwards (since high order bits determine remainders that effect low order bits)
+   for (int i = ubig_value.size()-1; i >= 0; i--) {
+      if (remainder > 0) {
+         digitQuotient += 5;
+         remainder = 0;
+      }
+
+      if (ubig_value.at(i) % 2) { // if (ubig_value.at(i) is odd) {
+         remainder = 5;
+      }
+
+      digitQuotient += ubig_value.at(i) / 2;
+      ubig_value.at(i) = digitQuotient;
+   }
+
+   while (ubig_value.size() > 0 and ubig_value.back() == 0) ubig_value.pop_back();
 }
 
 ubigint::quot_rem ubigint::divide (const ubigint& that) const {
-   static const ubigint zero = 0;
+   static const ubigint zero(0);
    if (that == zero) throw domain_error ("ubigint::divide: by 0");
-   ubigint power_of_2 = 1;
-   ubigint divisor = that; // right operand, divisor
-   ubigint quotient = 0;
+   ubigint power_of_2 = ubigint(1);
+   ubigint divisor = that;    // right operand, divisor
+   ubigint quotient = ubigint(0);
    ubigint remainder = *this; // left operand, dividend
+
    while (divisor < remainder) {
       divisor.multiply_by_2();
       power_of_2.multiply_by_2();
    }
-   while (power_of_2 > zero) {
-      if (divisor <= remainder) {
+
+   while (zero < power_of_2) {
+      if (divisor < remainder or divisor == remainder) {
          remainder = remainder - divisor;
          quotient = quotient + power_of_2;
       }
       divisor.divide_by_2();
       power_of_2.divide_by_2();
    }
+
+   while (quotient.ubig_value.size() > 0 and quotient.ubig_value.back() == 0) quotient.ubig_value.pop_back();
+   while (remainder.ubig_value.size() > 0 and remainder.ubig_value.back() == 0) remainder.ubig_value.pop_back();
    return {quotient, remainder};
 }
 
 ubigint ubigint::operator/ (const ubigint& that) const {
-   return divide (that).first;
+   return divide(that).first;
 }
 
 ubigint ubigint::operator% (const ubigint& that) const {
-   return divide (that).second;
+   return divide(that).second;
 }
 
 // Comparison operations
@@ -236,6 +277,9 @@ bool ubigint::operator< (const ubigint& that) const {
    if (ubig_value.size() < that.ubig_value.size()) {
       return 1;
    } else if (ubig_value.size() == that.ubig_value.size()) {
+      // First, check the corner case that we're comparing two ubigints of size 0
+      if (ubig_value.size() == 0) return 0;
+
       for (int i = ubig_value.size()-1; i >= 0; i--) {
          if (ubig_value.at(i) >= that.ubig_value.at(i)) {
             return 0;
