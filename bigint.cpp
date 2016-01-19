@@ -73,8 +73,9 @@ bool bigint::operator== (const bigint& that) const {
 
 bool bigint::operator< (const bigint& that) const {
    if (is_negative != that.is_negative) return is_negative;
-   return is_negative ? uvalue > that.uvalue
-                      : uvalue < that.uvalue;
+
+   if (is_negative) return !(uvalue < that.uvalue) and !(uvalue == that.uvalue); // Equivalent to uvalue > that.uvalue
+   return uvalue < that.uvalue;  // else, both values are positive
 }
 
 ostream& operator<< (ostream& out, const bigint& that) {

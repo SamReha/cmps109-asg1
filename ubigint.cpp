@@ -17,7 +17,7 @@ ubigint::ubigint (unsigned long that) {
       that = that/10;
    }
 
-   //DEBUGF ('~', this << " -> " << that) - commented out only for use in ubiginttester
+   DEBUGF ('~', this << " -> " << that) - commented out only for use in ubiginttester
 }
 
 ubigint::ubigint (const string& that) {
@@ -27,17 +27,6 @@ ubigint::ubigint (const string& that) {
 
    reverse(ubig_value.begin(), ubig_value.end());
 }
-
-/* Copy function
-ubigint ubigint::copy() {
-   ubigint copyValue(0);
-
-   for (int i = 0; i < ubig_value.size(); i++) {
-      copyValue.ubig_value.push_back(ubig_value.at(i));
-   }
-
-   return copyValue;
-} */
 
 /* Arithmetic Operations */
 ubigint ubigint::operator+ (const ubigint& that) const {
@@ -177,7 +166,7 @@ ubigint ubigint::operator* (const ubigint& that) const {
    return product;
 }
 
-// Handy internal helper functions
+/* Handy internal helper functions for division */
 void ubigint::multiply_by_2() {
    // Just a simpler case of multiplication
    int carry = 0;
@@ -259,7 +248,7 @@ ubigint ubigint::operator% (const ubigint& that) const {
    return divide(that).second;
 }
 
-// Comparison operations
+/* Comparison operations */
 bool ubigint::operator== (const ubigint& that) const {
    if (ubig_value.size() == that.ubig_value.size()) {
       for (int i = 0; i < ubig_value.size(); i++) {
