@@ -274,14 +274,16 @@ bool ubigint::operator== (const ubigint& that) const {
 }
 
 bool ubigint::operator< (const ubigint& that) const {
-   if (ubig_value.size() < that.ubig_value.size()) {
-      return 1;
-   } else if (ubig_value.size() == that.ubig_value.size()) {
+   // Handle trivial cases
+   if (*this == that) return 0;
+   if (ubig_value.size() < that.ubig_value.size()) return 1;
+
+   if (ubig_value.size() == that.ubig_value.size()) {
       // First, check the corner case that we're comparing two ubigints of size 0
       if (ubig_value.size() == 0) return 0;
 
       for (int i = ubig_value.size()-1; i >= 0; i--) {
-         if (ubig_value.at(i) >= that.ubig_value.at(i)) {
+         if (ubig_value.at(i) > that.ubig_value.at(i)) {
             return 0;
          }
       }
