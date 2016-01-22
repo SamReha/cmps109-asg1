@@ -1,5 +1,3 @@
-// $Id: main.cpp,v 1.49 2016-01-13 13:35:41-08 - - $
-
 #include <cassert>
 #include <deque>
 #include <iostream>

@@ -1,5 +1,3 @@
-// $Id: ubigint.cpp,v 1.8 2015-07-03 14:46:41-07 - - $
-
 #include <cstdlib>
 #include <exception>
 #include <stack>
@@ -17,7 +15,7 @@ ubigint::ubigint (unsigned long that) {
       that = that/10;
    }
 
-   DEBUGF ('~', this << " -> " << that) - commented out only for use in ubiginttester
+   DEBUGF ('~', this << " -> " << that)
 }
 
 ubigint::ubigint (const string& that) {
@@ -52,7 +50,7 @@ ubigint ubigint::operator+ (const ubigint& that) const {
    int carry = 0;    // The carry value (if any) - should be reset to 0 on use
    int digitSum = 0; // digitSum represents the sum of two digits (eg, ubig_value.at(0) + that.ubig_value.at(0))
    while (i < minSize or carry > 0) {
-      // Ugly logic, but avoids accidentally indexing into an operand that's shorter than the other
+      // Ugly logic, but avoids accidentally runnig off the end of an operand that's shorter than the other
       if (i < ubig_value.size()) digitSum += ubig_value.at(i);
       if (i < that.ubig_value.size()) digitSum += that.ubig_value.at(i);
       digitSum += carry;
@@ -193,20 +191,21 @@ void ubigint::multiply_by_2() {
 
 void ubigint::divide_by_2() {
    int remainder = 0; // because we're only ever dividing by two, remainder can only equal 0 or 5
-   int digitQuotient = 0;
 
    // Iterate backwards (since high order bits determine remainders that effect low order bits)
    for (int i = ubig_value.size()-1; i >= 0; i--) {
+      int digitQuotient = 0;
       if (remainder > 0) {
-         digitQuotient += 5;
+         digitQuotient += remainder;
          remainder = 0;
       }
+
+      digitQuotient += ubig_value.at(i) / 2;
 
       if (ubig_value.at(i) % 2) { // if (ubig_value.at(i) is odd) {
          remainder = 5;
       }
 
-      digitQuotient += ubig_value.at(i) / 2;
       ubig_value.at(i) = digitQuotient;
    }
 
@@ -227,7 +226,7 @@ ubigint::quot_rem ubigint::divide (const ubigint& that) const {
    }
 
    while (zero < power_of_2) {
-      if (divisor < remainder or divisor == remainder) {
+      if ((divisor < remainder) or (divisor == remainder)) {
          remainder = remainder - divisor;
          quotient = quotient + power_of_2;
       }
@@ -288,15 +287,20 @@ bool ubigint::operator< (const ubigint& that) const {
 // Print to ostream
 ostream& operator<< (ostream& out, const ubigint& that) {
    string digitBuffer;
-
+   int lineLength = 70;
    if (that.ubig_value.size() > 0) {
+      int charCount = 0;
+
       for (int i = that.ubig_value.size()-1; i >= 0; i--) {
-         digitBuffer += (that.ubig_value.at(i) + '0');
+         // Wrap lines as necessary (but should probably avoid magic numbers
+         if (charCount%(lineLength-1) == 0 and charCount != 0) out << "\\" << endl;
+         out << static_cast<char>(that.ubig_value.at(i) + '0');
+         charCount++;
       }
    } else { // else if ubig_value is empty, then that represents 0.
-      digitBuffer += '0';
+      out << '0';
    }
 
-   return out << digitBuffer;
+   return out;
 }
 

@@ -1,5 +1,3 @@
-// $Id: bigint.cpp,v 1.73 2015-07-03 14:46:41-07 - - $
-
 #include <cstdlib>
 #include <exception>
 #include <stack>
@@ -38,6 +36,7 @@ bigint bigint::operator+ (const bigint& that) const {
    if (uvalue < that.uvalue) {
       return {that.uvalue - uvalue, that.is_negative};
    } else {
+      if (uvalue == that.uvalue) return {ubigint(0), false};
       return {uvalue - that.uvalue, is_negative};
    }
 }
@@ -45,6 +44,7 @@ bigint bigint::operator+ (const bigint& that) const {
 bigint bigint::operator- (const bigint& that) const {
    if (is_negative == that.is_negative) {
       if (uvalue < that.uvalue) return {that.uvalue - uvalue, not is_negative};
+      if (uvalue == that.uvalue) return {ubigint(0), false};
       return {uvalue - that.uvalue, is_negative};
    }
 
@@ -68,7 +68,8 @@ bigint bigint::operator% (const bigint& that) const {
 }
 
 bool bigint::operator== (const bigint& that) const {
-   return is_negative == that.is_negative and uvalue == that.uvalue;
+   if (not (is_negative == that.is_negative)) return false;
+   return uvalue == that.uvalue;
 }
 
 bool bigint::operator< (const bigint& that) const {
